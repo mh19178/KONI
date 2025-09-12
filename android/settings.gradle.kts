@@ -2,25 +2,21 @@ import org.gradle.api.initialization.resolve.RepositoriesMode
 import java.util.Properties
 import java.io.FileInputStream
 
-// ★★★ ファイルの先頭でFlutter SDKのパスを取得する ★★★
-val localProperties = Properties()
-val localPropertiesFile = rootProject.file("local.properties")
-if (localPropertiesFile.exists()) {
-    localProperties.load(FileInputStream(localPropertiesFile))
-}
-val flutterRoot = localProperties.getProperty("flutter.sdk") ?: System.getenv("FLUTTER_ROOT")
-if (flutterRoot == null) {
-    throw GradleException("Flutter SDK not found. Define location with flutter.sdk in the local.properties file.")
-}
-
-
 pluginManagement {
     repositories {
         google()
         mavenCentral()
         gradlePluginPortal()
-        // ★★★ ここでflutterRoot変数が使えるようになる ★★★
         maven {
+            val localProperties = Properties()
+            val localPropertiesFile = rootProject.file("local.properties")
+            if (localPropertiesFile.exists()) {
+                localProperties.load(FileInputStream(localPropertiesFile))
+            }
+            val flutterRoot = localProperties.getProperty("flutter.sdk") ?: System.getenv("FLUTTER_ROOT")
+            if (flutterRoot == null) {
+                throw GradleException("Flutter SDK not found. Define location with flutter.sdk in the local.properties file.")
+            }
             url = uri("$flutterRoot/packages/flutter_tools/gradle")
         }
     }
