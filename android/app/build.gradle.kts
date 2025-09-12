@@ -20,7 +20,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.form_analyzer_app"
-        minSdkVersion(24)
+        minSdkVersion(21) // 一旦21に戻す
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -35,4 +35,8 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // ひとまず空にする
 }

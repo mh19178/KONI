@@ -43,9 +43,9 @@ dependencies:
   intl: ^0.20.2
   fl_chart: ^1.0.0
   shimmer: ^3.0.0
-  image_picker: ^1.1.2
+  image_picker: ^1.2.0
   video_player: ^2.10.0
-  ffmpeg_kit_flutter_full_gpl: ^6.0.3
+  video_editor: ^3.0.0
 
 dev_dependencies:
   flutter_test:
