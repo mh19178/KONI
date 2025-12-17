@@ -1,37 +1,18 @@
-// lib/models/analysis_session.dart
-
 import 'package:hive/hive.dart';
-import 'landmark_point.dart';
-// ★★★ export を import に修正 ★★★
 import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart' show PoseLandmarkType;
+import 'landmark_point.dart';
 
 part 'analysis_session.g.dart';
 
-// PoseLandmarkTypeの値を保存可能にするためのアダプター
+@HiveType(typeId: 3)
 class PoseLandmarkTypeAdapter extends TypeAdapter<PoseLandmarkType> {
   @override
   final int typeId = 3;
-
   @override
   PoseLandmarkType read(BinaryReader reader) {
     final index = reader.readByte();
-    // PoseLandmarkType.valuesが使えないため、手動でマッピング
-    const List<PoseLandmarkType> types = [
-      PoseLandmarkType.nose, PoseLandmarkType.leftEyeInner, PoseLandmarkType.leftEye,
-      PoseLandmarkType.leftEyeOuter, PoseLandmarkType.rightEyeInner, PoseLandmarkType.rightEye,
-      PoseLandmarkType.rightEyeOuter, PoseLandmarkType.leftEar, PoseLandmarkType.rightEar,
-      PoseLandmarkType.leftMouth, PoseLandmarkType.rightMouth, PoseLandmarkType.leftShoulder,
-      PoseLandmarkType.rightShoulder, PoseLandmarkType.leftElbow, PoseLandmarkType.rightElbow,
-      PoseLandmarkType.leftWrist, PoseLandmarkType.rightWrist, PoseLandmarkType.leftPinky,
-      PoseLandmarkType.rightPinky, PoseLandmarkType.leftIndex, PoseLandmarkType.rightIndex,
-      PoseLandmarkType.leftThumb, PoseLandmarkType.rightThumb, PoseLandmarkType.leftHip,
-      PoseLandmarkType.rightHip, PoseLandmarkType.leftKnee, PoseLandmarkType.rightKnee,
-      PoseLandmarkType.leftAnkle, PoseLandmarkType.rightAnkle, PoseLandmarkType.leftHeel,
-      PoseLandmarkType.rightHeel, PoseLandmarkType.leftFootIndex, PoseLandmarkType.rightFootIndex,
-    ];
-    return types[index];
+    return PoseLandmarkType.values[index];
   }
-
   @override
   void write(BinaryWriter writer, PoseLandmarkType obj) {
     writer.writeByte(obj.index);
@@ -64,10 +45,76 @@ class AnalysisSession extends HiveObject {
   final double idealImageWidth;
   @HiveField(11)
   final double idealImageHeight;
-
-  // ★★★ フィールド番号を12に修正 ★★★
   @HiveField(12)
   final int imageRotation;
+  @HiveField(13)
+  final String? videoPath;
+  @HiveField(14)
+  final String? analysisType;
+  @HiveField(15)
+  final String? idealVideoPath;
+  @HiveField(16)
+  final double? idealStartTimeMs;
+  @HiveField(17)
+  final double? idealEndTimeMs;
+  @HiveField(18)
+  final double? userStartTimeMs;
+  @HiveField(19)
+  final double? userEndTimeMs;
+
+  // (ピッチング用 - SSE)
+  @HiveField(20)
+  final double? idealSSEAngle;
+  @HiveField(21)
+  final double? userSSEAngle;
+
+  // (バッティング用 & 汎用)
+  @HiveField(30)
+  final double? idealBodyTilt; // バッティング:構え / ピッチング:リリース時
+  @HiveField(31)
+  final double? userBodyTilt;
+
+  @HiveField(32)
+  final double? idealWeightShift;
+  @HiveField(33)
+  final double? userWeightShift;
+
+  @HiveField(34)
+  final double? idealHeadStability; // 頭の移動量 (ピッチングでも使用)
+  @HiveField(35)
+  final double? userHeadStability;
+
+  // (関節別スコア)
+  @HiveField(26)
+  final double? shoulderScore;
+  @HiveField(27)
+  final double? hipScore;
+  @HiveField(28)
+  final double? elbowScore;
+  @HiveField(29)
+  final double? kneeScore;
+
+  // (古いバッティング指標 - 互換性のため残す)
+  @HiveField(22) final double? idealXFactorAngle;
+  @HiveField(23) final double? userXFactorAngle;
+  @HiveField(24) final double? idealElbowAngle;
+  @HiveField(25) final double? userElbowAngle;
+
+  // ★★★ 新しいピッチング指標を追加 (V3.1) ★★★
+
+  // リリースポイントの高さ (Y座標, 正規化値)
+  @HiveField(36)
+  final double? idealReleaseHeight;
+  @HiveField(37)
+  final double? userReleaseHeight;
+
+  // リリースポイントの横位置 (X座標, 正規化値)
+  @HiveField(38)
+  final double? idealReleaseSide;
+  @HiveField(39)
+  final double? userReleaseSide;
+
+  // ★★★ 追加ここまで ★★★
 
   AnalysisSession({
     required this.id,
@@ -83,5 +130,34 @@ class AnalysisSession extends HiveObject {
     required this.idealImageWidth,
     required this.idealImageHeight,
     required this.imageRotation,
+    this.videoPath,
+    this.analysisType,
+    this.idealVideoPath,
+    this.idealStartTimeMs,
+    this.idealEndTimeMs,
+    this.userStartTimeMs,
+    this.userEndTimeMs,
+    this.idealSSEAngle,
+    this.userSSEAngle,
+    this.shoulderScore,
+    this.hipScore,
+    this.elbowScore,
+    this.kneeScore,
+    this.idealBodyTilt,
+    this.userBodyTilt,
+    this.idealWeightShift,
+    this.userWeightShift,
+    this.idealHeadStability,
+    this.userHeadStability,
+    this.idealXFactorAngle,
+    this.userXFactorAngle,
+    this.idealElbowAngle,
+    this.userElbowAngle,
+
+    // ★ 新しい引数
+    this.idealReleaseHeight,
+    this.userReleaseHeight,
+    this.idealReleaseSide,
+    this.userReleaseSide,
   });
 }

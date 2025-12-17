@@ -9,7 +9,6 @@ import '../services/database_service.dart';
 import 'analysis_detail_screen.dart';
 
 class HistoryScreen extends ConsumerWidget {
-  // ★★★ MainScreenからタブ切り替え用の関数を受け取る
   final void Function(int) onTabTapped;
 
   const HistoryScreen({super.key, required this.onTabTapped});
@@ -25,7 +24,6 @@ class HistoryScreen extends ConsumerWidget {
       body: sessionsAsyncValue.when(
         data: (sessions) {
           if (sessions.isEmpty) {
-            // ★★★ 空画面のUIを修正 ★★★
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
@@ -43,8 +41,7 @@ class HistoryScreen extends ConsumerWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                       ),
                       onPressed: () {
-                        // ★★★ 受け取った関数を呼び出してタブを切り替える ★★★
-                        onTabTapped(1);
+                        onTabTapped(1); // 撮影タブへ移動
                       },
                     )
                   ],
@@ -74,12 +71,28 @@ class HistoryScreen extends ConsumerWidget {
                 child: Card(
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: ListTile(
+                    // ★★★ 修正箇所 (Bug 2: 存在しない画像のエラーハンドリング) ★★★
                     leading: Image.file(
                       File(session.imagePath),
                       width: 56,
                       height: 56,
                       fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        // 画像読み込みエラー時（ファイルが存在しない場合など）の
+                        // プレースホルダーを表示
+                        return Container(
+                          width: 56,
+                          height: 56,
+                          color: Colors.grey[300],
+                          child: Icon(
+                            // videoPathの有無でアイコンを切り替える
+                            session.videoPath != null ? Icons.movie : Icons.photo,
+                            color: Colors.grey[600],
+                          ),
+                        );
+                      },
                     ),
+                    // ★★★ 修正ここまで ★★★
                     title: Text(
                       DateFormat('yyyy/MM/dd HH:mm').format(session.createdAt),
                     ),

@@ -1,3 +1,6 @@
+import org.gradle.api.initialization.resolve.RepositoriesMode
+import java.util.Properties // (val properties = java.util.Properties() で必要)
+
 pluginManagement {
     val flutterSdkPath =
         run {
@@ -14,6 +17,7 @@ pluginManagement {
         google()
         mavenCentral()
         gradlePluginPortal()
+        // もしプラグインが別のリポジトリを要求するならここにも追加できます
     }
 }
 
@@ -24,3 +28,17 @@ plugins {
 }
 
 include(":app")
+
+// プラグイン以外の「ライブラリ」（ffmpeg-kitなど）を探す場所を定義します
+dependencyResolutionManagement {
+    // settings 側のリポジトリを優先させる
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+    repositories {
+        google()
+        mavenCentral()
+        // Flutter のネイティブエンジンアーティファクトを提供する必須リポジトリ
+        maven { url = uri("https://storage.googleapis.com/download.flutter.io") }
+        // ffmpeg-kit を探す場合に必要になることがある
+        maven { url = uri("https://jitpack.io") }
+    }
+}

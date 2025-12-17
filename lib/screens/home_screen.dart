@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../models/analysis_session.dart';
 import '../providers/services_provider.dart';
-import 'video_analysis_screen.dart'; // ★★★ このimport文が重要です ★★★
+import 'video_analysis_screen.dart'; // ★ 修正: video_trimmer_screen から戻す
+import 'video_range_selector_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   final void Function(int) onTabTapped;
@@ -120,12 +121,14 @@ class HomeScreen extends ConsumerWidget {
                 backgroundColor: Colors.teal,
                 foregroundColor: Colors.white,
               ),
+              // ★★★ 修正箇所: 遷移先を VideoAnalysisScreen に戻す ★★★
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const VideoAnalysisScreen()),
+                  MaterialPageRoute(builder: (context) => const VideoRangeSelectorScreen()),
                 );
               },
+              // ★★★ ここまで ★★★
             ),
           ],
         ),

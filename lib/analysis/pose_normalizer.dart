@@ -1,50 +1,62 @@
-import 'dart:ui';
-import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart';
 import 'dart:math';
+import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart';
 
 class PoseNormalizer {
-  // ポーズデータを入力として受け取り、正規化されたランドマークのマップを返す
   static Map<PoseLandmarkType, PoseLandmark> normalize(Pose pose) {
 
-    // 体の中心を定義するために、左右の腰のランドマークを取得
-    final leftHip = pose.landmarks[PoseLandmarkType.leftHip]!;
-    final rightHip = pose.landmarks[PoseLandmarkType.rightHip]!;
+    // ★ 1. 4つの主要なランドマークを取得
+    final PoseLandmark? leftShoulder = pose.landmarks[PoseLandmarkType.leftShoulder];
+    final PoseLandmark? rightShoulder = pose.landmarks[PoseLandmarkType.rightShoulder];
+    final PoseLandmark? leftHip = pose.landmarks[PoseLandmarkType.leftHip];
+    final PoseLandmark? rightHip = pose.landmarks[PoseLandmarkType.rightHip];
 
-    // 左右の腰の中点を体幹の中心とする
+    // ★ 2. 安全性のための NULL チェック (4点すべてが必要)
+    if (leftShoulder == null || rightShoulder == null || leftHip == null || rightHip == null) {
+      print("Warning: Key landmarks (Shoulders/Hips) not found. Skipping normalization.");
+      return pose.landmarks; // 生のデータを返す
+    }
+
+    // 3. 体幹の中心 (腰の中点) (変更なし)
     final torsoCenter = Point(
       (leftHip.x + rightHip.x) / 2,
       (leftHip.y + rightHip.y) / 2,
     );
 
-    // 正規化のためのスケール（縮尺）を計算
-    // ここでは左右の肩の距離を基準とする
-    final leftShoulder = pose.landmarks[PoseLandmarkType.leftShoulder]!;
-    final rightShoulder = pose.landmarks[PoseLandmarkType.rightShoulder]!;
+    // ★ 4. 修正: 正規化の基準を「肩の距離」から「体幹の長さ」に変更
 
-    final shoulderDistance = sqrt(
-        pow(leftShoulder.x - rightShoulder.x, 2) +
-            pow(leftShoulder.y - rightShoulder.y, 2)
+    // 肩の中点を計算
+    final shoulderMidpoint = Point(
+      (leftShoulder.x + rightShoulder.x) / 2,
+      (leftShoulder.y + rightShoulder.y) / 2,
     );
 
-    // 正規化された新しいランドマークを格納するマップ
+    // 体幹の長さ (肩の中点と腰の中点の距離)
+    final double torsoLength = sqrt(
+        pow(shoulderMidpoint.x - torsoCenter.x, 2) +
+            pow(shoulderMidpoint.y - torsoCenter.y, 2)
+    );
+
+    // 5. ゼロ除算を防止
+    if (torsoLength < 1e-6) {
+      return pose.landmarks;
+    }
+
     final Map<PoseLandmarkType, PoseLandmark> normalizedLandmarks = {};
 
-    // すべてのランドマークをループして正規化処理を適用
+    // 6. すべてのランドマークをスケーリング
     pose.landmarks.forEach((type, landmark) {
-      // 1. 体幹の中心が原点(0,0)になるように、すべての点を平行移動
       final translatedX = landmark.x - torsoCenter.x;
       final translatedY = landmark.y - torsoCenter.y;
 
-      // 2. 肩幅が常に一定になるように、すべての点をスケーリング（拡大/縮小）
-      final normalizedX = translatedX / shoulderDistance;
-      final normalizedY = translatedY / shoulderDistance;
+      // ★ 7. 修正: shoulderDistance ではなく torsoLength で割る
+      final normalizedX = translatedX / torsoLength;
+      final normalizedY = translatedY / torsoLength;
 
-      // 新しい正規化済みのランドマークを作成してマップに追加
       normalizedLandmarks[type] = PoseLandmark(
         type: type,
         x: normalizedX,
         y: normalizedY,
-        z: 0, // Z座標は今回は使わない
+        z: 0,
         likelihood: landmark.likelihood,
       );
     });
